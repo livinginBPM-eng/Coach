@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coach">
+<title>Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--text:#f0f0f0;--text2:#999;--text3:#555;--accent:#d97706;--border:#2e2e2e;--border2:#3a3a3a;--gbg:#052e16;--gtxt:#4ade80;--gbdr:#16a34a;--abg:#3a1f00;--atxt:#fbbf24;--abdr:#d97706;--rbg:#450a0a;--rtxt:#f87171;--rbdr:#dc2626}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:16px;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:88px}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;padding:10px 4px 8px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;border:none;background:none;color:var(--text3);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav button.on{color:var(--accent)}
+.ni{font-size:20px}
+.sc{display:none}.sc.on{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+.ct{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;font-weight:600}
+.bb{width:100%;padding:15px;font-size:16px;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:12px;cursor:pointer;margin-bottom:10px;font-family:inherit;transition:opacity .15s}
+.bb:active{opacity:.8}.bb:disabled{opacity:.35}
+.bs{background:var(--bg3);color:var(--text);border:1px solid var(--border2);font-size:14px;font-weight:500;padding:12px}
+.pr{display:flex;gap:8px;margin-bottom:8px}
+.pi{flex:1;padding:11px 8px;text-align:center;font-size:13px;font-weight:600;border-radius:10px;border:1px solid var(--border);cursor:pointer;font-family:inherit;background:var(--bg3);color:var(--text2)}
+.pi.pg{background:var(--gbg);border-color:var(--gbdr);color:var(--gtxt)}
+.pi.pa{background:var(--abg);border-color:var(--abdr);color:var(--atxt)}
+.pi.pr2{background:var(--rbg);border-color:var(--rbdr);color:var(--rtxt)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.st{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.sv{font-size:28px;font-weight:700;color:var(--text)}.sl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-top:3px}
+.pos{font-size:22px;font-weight:700;margin-bottom:4px}
+.phase{font-size:12px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.cr{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cb{font-size:12px;font-family:inherit;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text2);cursor:pointer;font-weight:500}
+.cb:active{border-color:var(--accent);color:var(--accent)}
+.wod{font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.sp{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:var(--rbg);border:1px solid var(--rbdr);border-radius:10px;padding:14px;font-size:13px;color:var(--rtxt);margin-bottom:12px;line-height:1.6}
+.tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tg{background:var(--gbg);color:var(--gtxt)}.ta{background:var(--abg);color:var(--atxt)}.tr2{background:var(--rbg);color:var(--rtxt)}
+input[type=text],input[type=password],select,textarea{font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);color:var(--text);width:100%;outline:none;-webkit-appearance:none}
+input[type=text]:focus,input[type=password]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+.mc{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px}
+.mf{display:grid;grid-template-columns:2fr 1fr 1fr;gap:7px;margin-bottom:7px}
+.mf input{font-size:13px;padding:9px 10px}
+.mn{display:flex;gap:7px;align-items:center}
+.mn input{font-size:13px;padding:9px 10px;flex:1}
+.db{font-size:20px;border:none;background:none;color:var(--text3);cursor:pointer;padding:2px 6px}
+.amb{width:100%;padding:11px;font-size:13px;font-family:inherit;border:1px dashed var(--border2);border-radius:10px;background:none;color:var(--text3);cursor:pointer;margin-top:4px}
+.amb:active{border-color:var(--accent);color:var(--accent)}
+.le{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.lhdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.ld{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.lt{font-size:14px;font-weight:600;color:var(--text);margin:3px 0}
+.lm{font-size:12px;color:var(--text2);line-height:1.8}
+.ln{font-size:13px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5}
+.ok{text-align:center;font-size:14px;color:var(--gtxt);padding:10px;font-weight:500}
+.ls{font-size:13px;color:var(--text2);line-height:1.6}
+.il{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:600}
+.setup-box{background:var(--bg2);border:1px solid var(--abdr);border-radius:12px;padding:16px;margin-bottom:16px}
+.setup-box p{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="content">
+
+    <div id="s-home" class="sc on">
+      <div class="card">
+        <div class="phase" id="h-phase">Phase 1 — Pattern Reset</div>
+        <div class="pos" id="h-pos">Block 1 · Week 1</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px" id="h-count">0 sessions logged</div>
+        <div class="cr">
+          <button class="cb" onclick="advWeek()">+ Week</button>
+          <button class="cb" onclick="doDeload()">Deload</button>
+          <button class="cb" onclick="nextBlock()">Next Block</button>
+          <button class="cb" onclick="nextPhase()">Next Phase</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Today's Pattern</div>
+        <div class="pr">
+          <button class="pi" id="p-clear" onclick="setPat('clear')">Clear</button>
+          <button class="pi" id="p-mild" onclick="setPat('mild')">Mild</button>
+          <button class="pi" id="p-active" onclick="setPat('active')">Active</button>
+        </div>
+        <div style="font-size:12px;color:var(--text3)">R trap tight / L disengaged / R ribcage locked</div>
+      </div>
+      <div class="sg">
+        <div class="st"><div class="sv" id="h-sess">0</div><div class="sl">Sessions</div></div>
+        <div class="st"><div class="sv" id="h-streak">0</div><div class="sl">Streak</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Last Session</div>
+        <div class="ls" id="h-last">No sessions yet.</div>
+      </div>
+    </div>
+
+    <div id="s-wod" class="sc">
+      <div id="key-setup" class="setup-box" style="display:none">
+        <p>Add your Anthropic API key to generate workouts. Get one free at console.anthropic.com → API Keys. Your key is stored only on this device.</p>
+        <div class="il">Anthropic API Key</div>
+        <input type="password" id="key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" style="margin-bottom:10px">
+        <button class="bb" onclick="saveKey()">Save Key</button>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div style="font-size:12px;color:var(--text2);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" id="w-pos">Block 1 · Week 1 · Phase 1</div>
+          <span class="tag tg" id="w-ptag">Clear</span>
+        </div>
+      </div>
+      <button class="bb" id="wod-btn" onclick="getWOD()">Get Today's WOD</button>
+      <button class="bb bs" id="refresh-wod-btn" onclick="getWOD(true)" style="display:none;font-size:12px;padding:8px">Regenerate WOD</button>
+      <div id="w-err" style="display:none"></div>
+      <div id="w-out" style="display:none">
+        <div class="card"><div class="wod" id="w-text"></div></div>
+        <button class="bb bs" onclick="copyWOD()">Copy WOD</button>
+        <div class="card" id="log-section" style="display:none">
+          <div class="ct">Log This Session</div>
+          <textarea id="l-notes" style="min-height:120px" placeholder="Write whatever matters — loads, reps, rounds, how it felt, right side, left side, what you skipped. Free form."></textarea>
+          <button class="bb" style="margin-top:10px" onclick="startChat()">Done — Start Chat</button>
+          <div id="l-ok" style="display:none" class="ok">Session saved.</div>
+        </div>
+        <button class="bb bs" id="log-toggle-btn" onclick="toggleLog()">Log This Session</button>
+        <div class="card" id="chat-section" style="display:none">
+          <div class="ct">Session Chat</div>
+          <div id="chat-messages" style="max-height:400px;overflow-y:auto;margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <textarea id="chat-input" placeholder="Type your response..." style="flex:1;min-height:60px;resize:none" onkeydown="chatKeydown(event)"></textarea>
+            <button class="bb" style="width:auto;padding:12px 16px;margin-bottom:0;flex-shrink:0" onclick="sendChat()">Send</button>
+          </div>
+          <button class="bb" style="margin-top:10px;background:var(--gbdr)" onclick="saveSession()">Save Session</button>
+          <div id="chat-ok" style="display:none" class="ok">Session saved.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="s-hist" class="sc">
+      <div class="sg">
+        <div class="st"><div class="sv" id="ht-tot">0</div><div class="sl">Total</div></div>
+        <div class="st"><div class="sv" id="ht-blk">1</div><div class="sl">Block</div></div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="ct">API Key</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px" id="key-status">Not set</div>
+        <button class="bb bs" onclick="clearKey()">Change API Key</button>
+      </div>
+      <div id="hist-list"><div style="font-size:14px;color:var(--text3);text-align:center;padding:40px 0">No sessions yet.</div></div>
+    </div>
+
+  </div>
+  <nav class="nav">
+    <button class="on" onclick="show('home')"><span class="ni">⌂</span>Home</button>
+    <button onclick="show('wod')"><span class="ni">◈</span>WOD</button>
+    
+    <button onclick="show('hist')"><span class="ni">≡</span>History</button>
+  </nav>
+</div>
+<script>
+const PHASES=['','Phase 1 — Pattern Reset','Phase 2 — Bilateral Loading','Phase 3 — Barbell & Plyometric Return','Phase 4 — Full Athletic Function'];
+
+const PROTO=`COACH PROTOCOL V2 — EXECUTIVE ATHLETE
+
+GOAL: Heal L/R asymmetry, progress to full function (running, jumping, barbell, Olympic lifting).
+
+THE PATTERN: Right trap dominates → right psoas grips → right ribcage locks → left disengages. Fix = release right first (face pulls 3x15 hunting rhomboids, crocodile breathing 8 reps, couch stretch right 90 sec), left activates automatically.
+Pattern: clear=normal | mild=talking | active=full pattern, reduce loads 10-20%, release first.
+
+LEFT SHOULDER: No kipping ever. All pulling strict 3-sec eccentric. Scap pull-ups before every set.
+
+EQUIPMENT: KBs 15/25/35/44/53/70 lb. DBs 20/25/30/35/50 lb. Bike erg, row erg, echo bike, GHD, reverse hyper, rack, pull-up bar, trap bar, landmine, bench, vest, bands.
+
+WORKING WEIGHTS (Block 1 W1 baselines, max +10 lb/week unilateral):
+TGU 44 lb (25 lb warmup). Swing 44 lb. Zercher single-leg 75-85-95 lb. RDL 35→44 lb W2. Row 40→50 lb W2. Press 50 lb DBs. Cossack 15-25 lb. Farmer 53 lb. Front rack right ceiling 35 lb. Pull-ups 3x6 strict.
+
+PHASES (benchmark-gated):
+P1 CURRENT: KB/DB only. No barbell, no jumping, no kipping.
+P2: Running, trap bar, box jumps, skin the cat.
+P3: Full barbell, kipping, plyometrics, HSPU, muscle ups.
+P4: Olympic lifting (last).
+
+WEEKLY STRUCTURE:
+Mon=Heavy Unilateral Strength: Zercher single-leg squat, KB single-leg RDL, Cossack squat, DB incline row, floor/incline press, Copenhagen plank, Pallof press. Barbell for Zercher, DBs for pressing and rows.
+Tue=High Intensity Metcon: 10-15 min, EMOM/AMRAP/chipper, KB+bodyweight+ergs only. No barbell, no jumping.
+Wed=Zone 2 Mixed Modality: 2-5 min cardio bouts rotating row/ruck/bike erg. Optional short-rep accessory (core, corrective). Nasal breathing throughout.
+Thu=Chassis and KB Skills: TGU (working weight 44 lb), KB carries and holds (farmer/rack/OH/mixed asymmetric), strict pull-ups (3-sec eccentric, scap pull-ups first), Neupert core progressions (tuck sits, L-sits, hanging work), suitcase/rack/OH carry variations. NO barbell, NO Zercher, NO unilateral DB pressing. This is KB and bodyweight only.
+Fri=Gymnastics/Skill or Metcon: Skill ladder (pike push-up, box HSPU, shoulder taps) or moderate metcon 8-12 min.
+Sat=Zone 2/Active Recovery: Same as Wednesday.
+
+WARMUP (all 3 layers required every session):
+L1: Thrival 3-5min right side → crocodile breathing 8 reps (ALWAYS FIRST) → face pulls 3x15 → TGU diagnostic 1-2/side 25 lb → dead bugs 10 → prone angels 10 → hip flow 90/90+wall squats.
+L2 session-specific: Strength=reverse hyper 2x15+Bradford press 2x10. Metcon=practice reps+easy row 3min. Zone2=couch stretch right 90sec. Gymnastics=shoulder circles+Jefferson curls.
+L3 rotating: right psoas couch stretch (mandatory lower body+metcon days), right thoracic, left scap activation, right adductor.
+CLOSEOUT: Couch stretch right 90 sec every session.
+
+NEUPERT CORE (program hard and often — PRIMARY stimulus):
+Stability: diaphragmatic breathing (supine/side 3 levels/prone 3 levels), dead bugs, bird dogs, quadruped rocking, neck nods/chin tucks.
+Strength-Floor: hollow holds, supine leg raises short+long lever.
+Strength-Hanging: tuck sits on KBs, L-sits, hanging hollow holds, knee tucks, leg raises. (Decompresses spine — use after heavy KB work.)
+Strength-Ground holds→carries: suitcase, rack, OH, bottoms-up, farmer, double rack, double OH, mixed. Kickstand→single-leg deadlifts ipsi+contra.
+Carries ARE primary stimulus, not finishers. Program them heavy and frequent. Mixed asymmetric (OH+farmer) forces bilateral core.
+
+KB BALLISTICS: deadlift→swing→clean→press→snatch→TGU.
+
+METCON FILTER: APPROVED=KB swings, burpees (right scap/lat cue), row erg, bike erg, carries, bodyweight. BANNED=barbell cycling, jumps, kipping, echo bike handles when right side hot. Substitute=echo bike→row erg.
+
+ZONE 2: Continuous cardio only. Rotate modalities every 2-5 min (row erg, ruck, bike erg) with NO recovery or rest between them — just switch machines and keep moving. No accessory movements interspersed. HR 125-135 nasal breathing throughout. Total 30-45 min.
+
+BENCHMARKS: Tue W1=Death By KB Swing+Burpee 10 rounds/10 min exact (right upper glute=capacity threshold=stop). Mon W1=Zercher 75-85-95/RDL 35/Row 40/Press 50/Cossack 15.
+
+KEY SIGNALS: Right upper glute tightening=capacity threshold, stop set, always log. Farmer carry=decompressive for right shoulder when wound. Echo bike handles=right trap trigger.`;
+
+let S={block:1,week:1,phase:1,pat:'clear',lp:'clear',sessions:[],moves:[],wod:null};
+
+function save(){try{localStorage.setItem('ea2',JSON.stringify(S));}catch(e){}}
+function load(){
+  try{const d=localStorage.getItem('ea2');if(d)S={...S,...JSON.parse(d)};}catch(e){}
+  updateUI();
+}
+
+function getKey(){return localStorage.getItem('ea-key')||'';}
+function saveKey(){
+  const k=document.getElementById('key-input').value.trim();
+  if(!k){alert('Please enter your API key.');return;}
+  localStorage.setItem('ea-key',k);
+  document.getElementById('key-setup').style.display='none';
+  updateKeyStatus();
+}
+function clearKey(){localStorage.removeItem('ea-key');updateKeyStatus();document.getElementById('key-setup').style.display='block';}
+function updateKeyStatus(){
+  const k=getKey();
+  const el=document.getElementById('key-status');
+  if(el)el.textContent=k?'Key saved ('+k.substring(0,12)+'...)':'Not set';
+  const setup=document.getElementById('key-setup');
+  if(setup)setup.style.display=k?'none':'block';
+}
+
+function show(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  const idx=['home','wod','hist'].indexOf(id);
+  document.querySelectorAll('.nav button')[idx].classList.add('on');
+  if(id==='hist')renderHist();
+  if(id==='wod'){updateWODBar();updateKeyStatus();}
+}
+
+function setPat(v){S.pat=v;updatePills();save();}
+function setLP(v){S.lp=v;updateLPills();}
+
+function pc(v,cur){
+  if(v!==cur)return'pi';
+  return v==='clear'?'pi pg':v==='mild'?'pi pa':'pi pr2';
+}
+function updatePills(){
+  ['clear','mild','active'].forEach(v=>{
+    const e=document.getElementById('p-'+v);if(e)e.className=pc(v,S.pat);
+  });
+  const tag=document.getElementById('w-ptag');
+  if(tag){
+    tag.textContent=S.pat.charAt(0).toUpperCase()+S.pat.slice(1);
+    tag.className='tag '+(S.pat==='clear'?'tg':S.pat==='mild'?'ta':'tr2');
+  }
+}
+function updateLPills(){
+  const m={'clear':'lp-c','mild':'lp-m','active':'lp-a'};
+  Object.keys(m).forEach(v=>{const e=document.getElementById(m[v]);if(e)e.className=pc(v,S.lp);});
+}
+
+function advWeek(){
+  if(S.week>=3){S.week=1;S.block++;}else S.week++;
+  save();updateUI();
+}
+function doDeload(){S.week=4;save();updateUI();alert('Deload week set. Use Next Block when ready.');}
+function nextBlock(){S.block++;S.week=1;save();updateUI();}
+function nextPhase(){if(S.phase<4){S.phase++;save();updateUI();}else alert('Already at Phase 4!');}
+
+function streak(){
+  if(!S.sessions.length)return 0;
+  const dates=[...new Set(S.sessions.map(s=>s.date))].sort().reverse();
+  const today=new Date().toISOString().split('T')[0];
+  let n=0,cur=today;
+  for(const d of dates){
+    if(d===cur){n++;const dt=new Date(cur);dt.setDate(dt.getDate()-1);cur=dt.toISOString().split('T')[0];}
+    else if(d<cur)break;
+  }
+  return n;
+}
+
+function updateUI(){
+  const dl=S.week===4;
+  const wl=dl?'Deload':'Week '+S.week;
+  document.getElementById('h-phase').textContent=PHASES[S.phase]||'Phase '+S.phase;
+  document.getElementById('h-pos').textContent='Block '+S.block+' · '+wl;
+  document.getElementById('h-count').textContent=S.sessions.length+' sessions logged';
+  document.getElementById('h-sess').textContent=S.sessions.length;
+  document.getElementById('h-streak').textContent=streak();
+  if(S.sessions.length){
+    const l=S.sessions[S.sessions.length-1];
+    document.getElementById('h-last').textContent=l.date+' — '+l.type+(l.notes?'\n'+l.notes.substring(0,100)+(l.notes.length>100?'...':''):'');
+  }
+  updatePills();updateLPills();updateWODBar();
+  S.moves=[];
+}
+
+function updateWODBar(){
+  const dl=S.week===4;
+  const lbl=document.getElementById('w-pos');
+  if(lbl)lbl.textContent='Block '+S.block+' · '+(dl?'Deload':'Week '+S.week)+' · '+(PHASES[S.phase]||'Phase '+S.phase);
+  updatePills();
+}
+
+function buildPrompt(){
+  const dl=S.week===4;
+  const day=new Date().toLocaleDateString('en-US',{weekday:'long'});
+  const dateStr=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const logs=S.sessions.slice(-10).map(s=>
+    s.date+'|'+s.type+'|pat:'+s.pat+'|B'+s.block+'W'+s.week+
+    (s.moves&&s.moves.length?'|'+s.moves.map(m=>m.n+(m.l?' @'+m.l+'lb':'')+( m.r?' x'+m.r:'')).join(','):'')+
+    (s.notes?'|'+s.notes:'')+
+    (s.chat&&s.chat.length?'|CHAT:'+s.chat.filter(m=>m.role==='user').map(m=>m.content).join(' / '):'')
+  ).join('\n');
+
+  return PROTO+`\n\n---\nDATE: ${dateStr}\nDAY: ${day}\nBLOCK: ${S.block}\n${dl?'DELOAD WEEK':'WEEK: '+S.week}\nPHASE: ${S.phase} — ${PHASES[S.phase]}\nPATTERN: ${S.pat.toUpperCase()}\n${S.pat==='active'?'ACTION: Full release protocol. Reduce loads 10-20%. Bilateral/stability focus.':''}\n${S.pat==='mild'?'ACTION: Include release protocol. Monitor. Ready to adjust.':''}\n${dl?'DELOAD: Reduce loads 20-30%, lower volume, maintain quality.':''}\n\nRECENT LOG:\n${logs||'First session.'}\n\n---\nGenerate complete session for ${day} Block ${S.block} ${dl?'Deload':'Week '+S.week}. Reference recent log, progress loads, vary movements.\n\nCRITICAL FORMAT RULES: (1) Warmup = short bullet list only, no prose explanations. (2) THE WORKOUT must always be fully complete with every movement, load, sets, reps. (3) Total response must fit in 2000 tokens — prioritize THE WORKOUT section above all else.\n\nUse these exact sections:\nPRE-WARMUP\nWARMUP\nWORKOUT NOTES\nTHE WORKOUT\nACCESSORY\nCLOSEOUT`;
+}
+
+async function getWOD(force=false){
+  const key=getKey();
+  if(!key){document.getElementById('key-setup').style.display='block';return;}
+
+  const today=new Date().toISOString().split('T')[0];
+  const cached=S.wodCache&&S.wodCache.date===today&&S.wodCache.text;
+
+  if(cached&&!force){
+    showWOD(S.wodCache.text);
+    return;
+  }
+
+  const btn=document.getElementById('wod-btn');
+  const err=document.getElementById('w-err');
+  btn.disabled=true;
+  btn.innerHTML='<span class="sp"></span>Generating...';
+  err.style.display='none';
+  document.getElementById('w-out').style.display='none';
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:2000,
+        system:'You are an expert coach specializing in kettlebell programming and asymmetry correction using Neupert SSP and Pavel frameworks. Generate complete specific training sessions. Always give specific loads. Keep warmup instructions concise — list movements with sets/reps/cues, no lengthy prose explanations. The workout section is the priority — it must always be complete.',
+        messages:[{role:'user',content:buildPrompt()}]
+      })
+    });
+    if(!resp.ok){const d=await resp.json().catch(()=>({}));throw new Error(d.error?.message||'HTTP '+resp.status);}
+    const data=await resp.json();
+    const t=data.content.map(b=>b.text||'').join('');
+    S.wodCache={date:today,text:t};
+    save();
+    showWOD(t);
+  }catch(e){
+    err.innerHTML='<div class="err">'+e.message+'</div>';
+    err.style.display='block';
+  }
+  btn.disabled=false;btn.innerHTML='Refresh WOD';
+}
+
+function showWOD(text){
+  S.wod=text;
+  document.getElementById('w-text').textContent=text;
+  document.getElementById('w-out').style.display='block';
+  document.getElementById('refresh-wod-btn').style.display='block';
+  document.getElementById('log-section').style.display='none';
+  document.getElementById('log-toggle-btn').style.display='block';
+  document.getElementById('chat-section').style.display='none';
+}
+
+function copyWOD(){if(S.wod)navigator.clipboard.writeText(S.wod).catch(()=>{});}
+
+function goLog(){toggleLog();}
+
+function toggleLog(){
+  const sec=document.getElementById('log-section');
+  const btn=document.getElementById('log-toggle-btn');
+  if(!sec)return;
+  if(sec.style.display==='none'||sec.style.display===''){
+    sec.style.display='block';
+    if(btn)btn.style.display='none';
+  } else {
+    sec.style.display='none';
+    if(btn)btn.style.display='block';
+  }
+}
+
+function chatKeydown(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}
+}
+
+function addChatMsg(role,text){
+  const msgs=document.getElementById('chat-messages');
+  const d=document.createElement('div');
+  const isMe=role==='user';
+  d.style.cssText='margin-bottom:12px;display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start');
+  d.innerHTML='<div style="max-width:85%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.6;background:'+(isMe?'var(--accent)':'var(--bg3)')+';color:'+(isMe?'#fff':'var(--text)')+'">'+text.replace(/\n/g,'<br>')+'</div>';
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+S.chatHistory=S.chatHistory||[];
+
+async function sendChat(){
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  addChatMsg('user',text);
+  S.chatHistory.push({role:'user',content:text});
+
+  const key=getKey();
+  if(!key)return;
+
+  const thinkingEl=document.createElement('div');
+  thinkingEl.style.cssText='margin-bottom:12px;font-size:13px;color:var(--text3);font-style:italic';
+  thinkingEl.textContent='Coach is thinking...';
+  document.getElementById('chat-messages').appendChild(thinkingEl);
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:600,
+        system:`You are an expert coach reviewing an athlete's session log. Ask concise follow-up questions to understand what happened and extract signal for future programming. Focus on: asymmetry pattern behavior, load feel, anything unexpected, energy/recovery. Ask ONE question at a time. Be brief. When you have enough to inform the next 2-3 sessions, say "Got it — I have what I need. Hit Save Session when ready." The athlete's protocol: right trap dominates, fixing L/R asymmetry, KB/DB only Phase 1, working weights: TGU 44lb, swing 44lb, Zercher 75-95lb, RDL 35lb.`,
+        messages:[
+          {role:'user',content:'Session notes: '+document.getElementById('l-notes').value+' | WOD was: '+(S.wod?S.wod.substring(0,300):'unknown')},
+          ...S.chatHistory
+        ]
+      })
+    });
+    const data=await resp.json();
+    const reply=data.content.map(b=>b.text||'').join('');
+    thinkingEl.remove();
+    addChatMsg('assistant',reply);
+    S.chatHistory.push({role:'assistant',content:reply});
+  }catch(e){
+    thinkingEl.remove();
+    addChatMsg('assistant','Error: '+e.message);
+  }
+}
+
+function startChat(){
+  const notes=document.getElementById('l-notes').value.trim();
+  if(!notes){alert('Add some session notes first.');return;}
+  document.getElementById('log-section').style.display='none';
+  document.getElementById('chat-section').style.display='block';
+  document.getElementById('log-toggle-btn').style.display='none';
+  S.chatHistory=[];
+  const day=new Date().toLocaleDateString('en-US',{weekday:'long'});
+  addChatMsg('assistant','Got your '+day+' notes. Let me ask a couple things to dial in the next sessions.');
+  sendChat();
+}
+
+async function saveSession(){
+  const today=new Date().toISOString().split('T')[0];
+  // Prevent duplicate saves on same day
+  const alreadySaved=S.sessions.some(s=>s.date===today);
+  if(alreadySaved){
+    const ok=confirm('You already saved a session today. Save another?');
+    if(!ok)return;
+  }
+  const day=new Date().toLocaleDateString('en-US',{weekday:'long'});
+  const map={Monday:'Monday — Heavy Unilateral Strength',Tuesday:'Tuesday — High Intensity Metcon',Wednesday:'Wednesday — Zone 2 Mixed Modality',Thursday:'Thursday — Chassis & KB Skills',Friday:'Friday — Gymnastics / Skill / Metcon',Saturday:'Saturday — Zone 2 / Active Recovery'};
+  const sess={
+    date:today,
+    type:map[day]||day,
+    pat:S.pat,block:S.block,week:S.week,
+    notes:document.getElementById('l-notes').value.trim(),
+    chat:S.chatHistory||[]
+  };
+  S.sessions.push(sess);
+  S.chatHistory=[];
+  document.getElementById('l-notes').value='';
+  document.getElementById('chat-section').style.display='none';
+  document.getElementById('log-toggle-btn').style.display='block';
+  save();
+  const ok=document.getElementById('chat-ok');
+  if(ok){ok.style.display='block';setTimeout(()=>ok.style.display='none',2500);}
+  updateUI();
+}
+
+function buildLogMoves(){
+  const list=document.getElementById('log-moves');
+  if(!list)return;
+  list.innerHTML='';
+  const wod=S.wod||'';
+  const lines=wod.split('\n');
+  const moves=[];
+  let inWorkout=false;
+  for(const line of lines){
+    const l=line.trim();
+    if(/^#+\s*(THE WORKOUT|ACCESSORY)/i.test(l)||/^(THE WORKOUT|ACCESSORY)$/i.test(l))inWorkout=true;
+    if(/^#+\s*(CLOSEOUT|PRE-WARMUP|WARMUP|WORKOUT NOTES)/i.test(l))inWorkout=false;
+    if(!inWorkout)continue;
+    if(l.startsWith('#')||l.startsWith('---')||l.length<4)continue;
+    // Strip markdown and get candidate name
+    let name=l.replace(/^[-•*\d.]+\s*/,'').replace(/\*\*/g,'').replace(/\*.+/,'').trim();
+    // Take only the movement name part before any colon, dash, paren, or weight
+    name=name.split(/[:(—–]|\s+[@x×\d]|\s+(lb|kg|min|sec|cal|rounds|reps|sets)/i)[0].trim();
+    // Skip if too short, too long, or looks like metadata/instructions
+    if(name.length<4||name.length>60)continue;
+    if(/^(block|phase|date|pace|hr |heart|rest|load|note|cue|signal|tempo|set |rep |do |for |use |this|each|with|then|after|before|if |the |and |but |per |all |any )/i.test(name))continue;
+    if(/^\d|^(\d+[-–]\d+)|^(~)|^(approx)/i.test(name))continue;
+    if(moves.indexOf(name)<0)moves.push(name);
+  }
+  const rows=moves.slice(0,12).length>0?moves.slice(0,12):['','','','',''];
+  // Header row
+  const hdr=document.createElement('div');
+  hdr.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;margin-bottom:4px';
+  hdr.innerHTML='<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Movement</div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Load lb</div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Sets x Reps</div>';
+  list.appendChild(hdr);
+  rows.forEach((name,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;margin-bottom:8px';
+    d.innerHTML='<input type="text" value="'+name+'" placeholder="Movement" id="mv-n-'+i+'" style="font-size:13px;padding:9px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);outline:none"><input type="text" placeholder="Load" id="mv-l-'+i+'" style="font-size:13px;padding:9px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);outline:none"><input type="text" placeholder="e.g. 3x8" id="mv-r-'+i+'" style="font-size:13px;padding:9px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);outline:none">';
+    list.appendChild(d);
+  });
+  const addBtn=document.createElement('button');
+  addBtn.className='amb';addBtn.textContent='+ Add Movement';
+  addBtn.onclick=function(){
+    const i=list.querySelectorAll('div[style*="grid"]').length-1;
+    const d=document.createElement('div');
+    d.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;margin-bottom:8px';
+    d.innerHTML='<input type="text" placeholder="Movement" id="mv-n-'+i+'" style="font-size:13px;padding:9px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);outline:none"><input type="text" placeholder="Load" id="mv-l-'+i+'" style="font-size:13px;padding:9px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);outline:none"><input type="text" placeholder="e.g. 3x8" id="mv-r-'+i+'" style="font-size:13px;padding:9px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);outline:none">';
+    list.insertBefore(d,addBtn);
+  };
+  list.appendChild(addBtn);
+}
+
+function addMv(n='',l='',r='',nt=''){S.moves.push({n,l,r,nt});renderMv();}
+function removeMv(i){S.moves.splice(i,1);renderMv();}
+function renderMv(){
+  const list=document.getElementById('mv-list');
+  if(!list)return;
+  list.innerHTML='';
+  S.moves.forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.className='mc';
+    d.innerHTML=`<div class="mf">
+      <input type="text" placeholder="Movement" value="${m.n}" oninput="S.moves[${i}].n=this.value">
+      <input type="text" placeholder="Load lb" value="${m.l}" oninput="S.moves[${i}].l=this.value">
+      <input type="text" placeholder="Sets×Reps" value="${m.r}" oninput="S.moves[${i}].r=this.value">
+    </div>
+    <div class="mn">
+      <input type="text" placeholder="Notes: feel, side, cues..." value="${m.nt}" oninput="S.moves[${i}].nt=this.value">
+      <button class="db" onclick="removeMv(${i})">×</button>
+    </div>`;
+    list.appendChild(d);
+  });
+}
+
+
+
+function deleteSession(idx){
+  if(!confirm('Delete this session?'))return;
+  S.sessions.splice(idx,1);
+  save();
+  renderHist();
+  updateUI();
+}
+
+function renderHist(){
+  document.getElementById('ht-tot').textContent=S.sessions.length;
+  document.getElementById('ht-blk').textContent=S.block;
+  updateKeyStatus();
+  const list=document.getElementById('hist-list');
+  if(!S.sessions.length){
+    list.innerHTML='<div style="font-size:14px;color:var(--text3);text-align:center;padding:40px 0">No sessions yet.</div>';
+    return;
+  }
+  const reversed=[...S.sessions].reverse();
+  list.innerHTML='';
+  reversed.forEach(function(s,i){
+    const origIdx=S.sessions.length-1-i;
+    const tc=s.pat==='clear'?'tg':s.pat==='mild'?'ta':'tr2';
+    const mv=(s.moves||[]).map(function(m){
+      return m.n+(m.l?' — '+m.l+' lb':'')+(m.r?' × '+m.r:'');
+    }).join('\n');
+    const el=document.createElement('div');
+    el.className='le';
+    let inner='<div class="lhdr"><div><div class="ld">'+s.date+' · B'+s.block+'W'+s.week+'</div><div class="lt">'+s.type+'</div></div>';
+    inner+='<div style="display:flex;align-items:center;gap:8px"><span class="tag '+tc+'">'+s.pat+'</span>';
+    inner+='<button onclick="deleteSession('+origIdx+')" style="font-size:18px;border:none;background:none;color:var(--text3);cursor:pointer;padding:2px 6px">×</button></div></div>';
+    if(mv)inner+='<div class="lm">'+mv+'</div>';
+    if(s.notes)inner+='<div class="ln">'+s.notes+'</div>';
+    if(s.chat&&s.chat.length){
+      const userMsgs=s.chat.filter(function(m){return m.role==='user';}).map(function(m){return m.content;}).join(' / ');
+      if(userMsgs)inner+='<div class="ln" style="color:var(--text3);font-size:11px">Chat: '+userMsgs+'</div>';
+    }
+    el.innerHTML=inner;
+    list.appendChild(el);
+  });
+}
+
+load();
+</script>
+</body>
+</html>
