@@ -230,7 +230,23 @@ ZONE 2: Continuous cardio only. Rotate modalities every 2-5 min (row erg, ruck, 
 
 BENCHMARKS: Tue W1=Death By KB Swing+Burpee 10 rounds/10 min exact (right upper glute=capacity threshold=stop). Mon W1=Zercher 75-85-95/RDL 35/Row 40/Press 50/Cossack 15.
 
-KEY SIGNALS: Right upper glute tightening=capacity threshold, stop set, always log. Farmer carry=decompressive for right shoulder when wound. Echo bike handles=right trap trigger.`;
+KEY SIGNALS: Right upper glute tightening=capacity threshold, stop set, always log. Farmer carry=decompressive for right shoulder when wound. Echo bike handles=right trap trigger.
+
+MOVEMENT LIBRARY — draw from this, rotate across weeks, never default to the same movements:
+
+MONDAY MOVEMENTS: TGU (anchoring — progress load each block: 35→44→53lb). Lower hinge: KB single-leg RDL ipsilateral/contralateral, kickstand RDL, single-leg good morning. Lower squat: Zercher single-leg squat, rear-foot elevated split squat KB/DB, lateral step-up, forward step-up, reverse lunge KB, Cossack squat bodyweight/KB. Upper push: single-arm DB floor/incline press, KB bottoms-up press standing/half-kneeling, single-arm landmine press, half-kneeling single-arm DB press. Upper pull: single-arm DB incline row, single-arm KB row, single-arm landmine row, half-kneeling band row, single-arm ring row. Hip stability: Copenhagen plank short/long/with hip flexion, side-lying adductor raise, single-leg glute bridge, single-leg hip thrust. Anti-rotation: Pallof press standing/half-kneeling/tall-kneeling/with reach, suitcase carry, single-arm OH carry.
+
+TUESDAY METCON MOVEMENTS — Hip hinge: KB swing two-hand, KB deadlift, KB sumo deadlift. Push: burpee (step-back no jump), burpee with push-up, push-up, hand-release push-up, pike push-up. Pull: row erg, ring row, strict pull-up (check Thursday volume). Mono: bike erg, echo bike (no handles when hot), ski erg, ruck. Lower: air squat, goblet squat, box step-up, reverse lunge. Core (approved in metcons): sit-up, tuck-up, hollow rock, V-up.
+VALID PAIRINGS (complementary opposites only): swing+burpee, row+push-up, bike+burpee, swing+box step-up, row+air squat, bike+ring row, KB deadlift+push-up, ski erg+goblet squat, row+sit-up, bike+sit-up, swing+sit-up.
+BANNED PAIRINGS: swing+row (two pulls), push-up+overhead press (two presses), pull-up+row (two pulls).
+
+ZONE 2 CORRECTIVES — Cardio: row erg, bike erg, ski erg, ruck, echo bike (feet only). Shoulder correctives (integrate into flow): face pulls, prone Y/T/W, prone angels, band pull-apart, wall slides, scapular push-up, dead hang. Hip correctives (integrate into flow): 90/90 hip flow, couch stretch right, adductor rock-back, single-leg glute bridge, dead bug, bird dog. Thoracic correctives: crocodile breathing, side-lying thoracic rotation, cat-cow, Jefferson curl, thoracic extension. Rotate corrective category weekly.
+
+THURSDAY KB MOVEMENTS — TGU (diagnostic/skill, lighter than Monday). Carries: farmer bilateral, suitcase, rack, OH, bottoms-up, mixed OH+farmer, double rack, double OH. Holds: rack hold, OH hold, bottoms-up hold, dead hang, farmer hold. Ballistics (progress across blocks): KB deadlift → KB swing two-hand → KB clean → KB front squat → KB press → KB snatch. Pull-ups: dead hang, scapular pull-up, negative, band-assisted, strict, strict with pause, L-sit (Phase 2+). Neupert core: tuck sit, L-sit, hanging hollow, hanging knee tuck, dead bug, bird dog, hollow hold.
+
+FRIDAY SKILL LADDER — Press progression (hold within block, advance at block turn): pike push-up floor → pike push-up elevated → box HSPU → strict wall HSPU → freestanding HSPU. Push-up progressions: standard, tempo, archer, ring, pseudo planche. Dips: box, ring (Phase 2+). Balance/inversion: shoulder tap, pike shoulder tap, wall HS hold chest-to-wall, wall HS hold back-to-wall. Pulling (only if Thursday was low pull): scapular pull-up, strict pull-up, tempo pull-up. Friday metcon movements: push-up/pike/HSPU, burpee, bike erg, KB carry, air squat/goblet squat, box step-up, sit-up/tuck-up/V-up, shoulder taps, hollow rock.
+
+CORE LIBRARY (rotate category across week, never same type two days in a row) — Anti-extension front: plank, RKC plank, hollow hold, hollow rock, dead bug. Anti-lateral: side plank, side plank with abduction/rotation, Copenhagen plank short/long/hip flexion, teapot KB, suitcase carry. Anti-extension posterior: reverse plank, superman hold, superman rock, GHD back extension, reverse hyper. Rotation/anti-rotation: Pallof press variations, Russian twist bodyweight/KB, windshield wipers bent/straight. Flexion (approved in metcons): sit-up, GHD sit-up, crunch, bicycle crunch, V-up, tuck-up, leg raise short/long lever, toes to bar (Phase 2+). Hanging: tuck sit, L-sit, hanging hollow, hanging knee tuck, hanging leg raise.`
 
 let S={block:1,week:1,phase:1,pat:'clear',lp:'clear',sessions:[],moves:[],wod:null};
 
@@ -352,47 +368,90 @@ async function getWOD(force=false){
 
   const today=new Date().toISOString().split('T')[0];
   const cached=S.wodCache&&S.wodCache.date===today&&S.wodCache.text;
-
-  if(cached&&!force){
-    showWOD(S.wodCache.text);
-    return;
-  }
+  if(cached&&!force){showWOD(S.wodCache.text);return;}
 
   const btn=document.getElementById('wod-btn');
   const err=document.getElementById('w-err');
   btn.disabled=true;
-  btn.innerHTML='<span class="sp"></span>Generating...';
   err.style.display='none';
   document.getElementById('w-out').style.display='none';
 
+  const headers={
+    'Content-Type':'application/json',
+    'x-api-key':key,
+    'anthropic-version':'2023-06-01',
+    'anthropic-dangerous-direct-browser-access':'true'
+  };
+
   try{
+    // ── STEP 1: PLANNING CALL ──────────────────────────────────────────
+    btn.innerHTML='<span class="sp"></span>Planning movements...';
+    const dl=S.week===4;
+    const day=new Date().toLocaleDateString('en-US',{weekday:'long'});
+    const recentMoves=S.sessions.slice(-6).map(s=>
+      s.date+'|'+s.type+(s.notes?'|'+s.notes.substring(0,120):'')
+    ).join('\n')||'No recent sessions.';
+
+    const planPrompt=`You are a strength and conditioning coach planning today's training movements.
+
+DAY: ${day} | BLOCK: ${S.block} | ${dl?'DELOAD WEEK':'WEEK: '+S.week} | PHASE: ${S.phase} | PATTERN: ${S.pat.toUpperCase()}
+
+RECENT SESSIONS (last 6):
+${recentMoves}
+
+TASK: Select today's primary movements for ${day}. Check the recent sessions above and ensure:
+1. No primary movement repeats from earlier THIS WEEK
+2. If Tuesday or Friday metcon, choose a valid push/pull or upper/lower pairing — never two pulls or two presses
+3. KB swings max once per week across Tuesday+Friday
+4. If Friday, check Thursday pull volume — reduce or eliminate pulling if Thursday was pull-heavy
+5. Monday movements stay consistent within a block — only progress load/reps
+6. Select from the full movement library, not just the most common options
+
+Return ONLY a short movement plan in this format — no workout, no sets, no reps, just the selected movements:
+DAY TYPE: [e.g. High Intensity Metcon]
+PRIMARY MOVEMENTS: [list the 2-4 key movements for today]
+PAIRING RATIONALE: [one sentence explaining why this pairing works]
+VARIETY CHECK: [confirm these don't repeat from this week's sessions]
+${dl?'DELOAD: Yes — reduce loads 20-30%':''}`
+
+    const planResp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers,
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:300,
+        messages:[{role:'user',content:planPrompt}]
+      })
+    });
+    if(!planResp.ok){const d=await planResp.json().catch(()=>({}));throw new Error(d.error?.message||'Plan HTTP '+planResp.status);}
+    const planData=await planResp.json();
+    const movementPlan=planData.content.map(b=>b.text||'').join('');
+
+    // ── STEP 2: PROGRAMMING CALL ───────────────────────────────────────
+    btn.innerHTML='<span class="sp"></span>Writing session...';
+
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
+      method:'POST',headers,
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:2000,
-        system:'You are an expert coach specializing in kettlebell programming and asymmetry correction using Neupert SSP and Pavel frameworks. Generate complete specific training sessions. Always give specific loads. Keep warmup instructions concise — list movements with sets/reps/cues, no lengthy prose explanations. The workout section is the priority — it must always be complete.',
-        messages:[{role:'user',content:buildPrompt()}]
+        system:'You are an expert coach specializing in kettlebell programming and asymmetry correction using Neupert SSP and Pavel frameworks. Generate complete specific training sessions. Always give specific loads. Keep warmup concise — bullet list only, no prose. The workout section is the priority and must always be complete.',
+        messages:[{role:'user',content:buildPrompt()+`\n\n---\nMOVEMENT PLAN FOR TODAY (already variety-checked — use these movements):\n${movementPlan}\n\nWrite the complete session using these movements. Do not substitute different movements.`}]
       })
     });
-    if(!resp.ok){const d=await resp.json().catch(()=>({}));throw new Error(d.error?.message||'HTTP '+resp.status);}
+    if(!resp.ok){const d=await resp.json().catch(()=>({}));throw new Error(d.error?.message||'WOD HTTP '+resp.status);}
     const data=await resp.json();
     const t=data.content.map(b=>b.text||'').join('');
-    S.wodCache={date:today,text:t};
+    S.wodCache={date:today,text:t,plan:movementPlan};
     save();
     showWOD(t);
+
   }catch(e){
     err.innerHTML='<div class="err">'+e.message+'</div>';
     err.style.display='block';
   }
   btn.disabled=false;btn.innerHTML='Refresh WOD';
 }
+
 
 function showWOD(text){
   S.wod=text;
