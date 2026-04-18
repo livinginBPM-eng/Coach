@@ -248,12 +248,45 @@ FRIDAY SKILL LADDER — INTRA-SESSION RULE: skill work and metcon MUST use oppos
 
 CORE LIBRARY (rotate category across week, never same type two days in a row) — Anti-extension front: plank, RKC plank, hollow hold, hollow rock, dead bug. Anti-lateral: side plank, side plank with abduction/rotation, Copenhagen plank short/long/hip flexion, teapot KB, suitcase carry. Anti-extension posterior: reverse plank, superman hold, superman rock, GHD back extension, reverse hyper. Rotation/anti-rotation: Pallof press variations, Russian twist bodyweight/KB, windshield wipers bent/straight. Flexion (approved in metcons): sit-up, GHD sit-up, crunch, bicycle crunch, V-up, tuck-up, leg raise short/long lever, toes to bar (Phase 2+). Hanging: tuck sit, L-sit, hanging hollow, hanging knee tuck, hanging leg raise.`
 
+const DRIVE_URL='https://script.google.com/macros/s/AKfycbxl0Mzc33XWbk-5KVE7OZgOJobi0ug4qGVpuLUZO38Z1mgcSWngiwkcS0LqWEOnnT15DQ/exec';
+
 let S={block:1,week:1,phase:1,pat:'clear',lp:'clear',sessions:[],moves:[],wod:null};
 
 function save(){try{localStorage.setItem('ea2',JSON.stringify(S));}catch(e){}}
-function load(){
+
+async function saveToDrive(session){
+  try{
+    await fetch(DRIVE_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'save',session:session})
+    });
+  }catch(e){console.log('Drive save failed:',e.message);}
+}
+
+async function loadFromDrive(){
+  try{
+    const resp=await fetch(DRIVE_URL);
+    if(!resp.ok)return null;
+    const data=await resp.json();
+    return data.sessions||null;
+  }catch(e){
+    console.log('Drive load failed:',e.message);
+    return null;
+  }
+}
+async function load(){
   try{const d=localStorage.getItem('ea2');if(d)S={...S,...JSON.parse(d)};}catch(e){}
   updateUI();
+  // Try to sync from Drive in background
+  try{
+    const driveSessions=await loadFromDrive();
+    if(driveSessions&&driveSessions.length>S.sessions.length){
+      S.sessions=driveSessions;
+      save();
+      updateUI();
+    }
+  }catch(e){}
 }
 
 function getKey(){return localStorage.getItem('ea-key')||'';}
@@ -388,9 +421,16 @@ async function getWOD(force=false){
     btn.innerHTML='<span class="sp"></span>Planning movements...';
     const dl=S.week===4;
     const day=new Date().toLocaleDateString('en-US',{weekday:'long'});
-    const recentMoves=S.sessions.slice(-6).map(s=>
-      s.date+'|'+s.type+(s.notes?'|'+s.notes.substring(0,120):'')
-    ).join('\n')||'No recent sessions.';
+    // Build rich session history including chat coaching observations
+    const recentMoves=S.sessions.slice(-10).map(s=>{
+      let entry=s.date+'|'+s.type+'|pat:'+s.pat;
+      if(s.notes)entry+='|'+s.notes.substring(0,150);
+      if(s.chat&&s.chat.length){
+        const coachObs=s.chat.filter(m=>m.role==='assistant').map(m=>m.content).join(' ').substring(0,200);
+        if(coachObs)entry+='|COACH:'+coachObs;
+      }
+      return entry;
+    }).join('\n')||'No recent sessions.';
 
     const planPrompt=`You are a strength and conditioning coach planning today's training movements.
 
@@ -577,6 +617,7 @@ async function saveSession(){
   document.getElementById('chat-section').style.display='none';
   document.getElementById('log-toggle-btn').style.display='block';
   save();
+  saveToDrive(sess); // async, non-blocking
   const ok=document.getElementById('chat-ok');
   if(ok){ok.style.display='block';setTimeout(()=>ok.style.display='none',2500);}
   updateUI();
